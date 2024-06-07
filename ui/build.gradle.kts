@@ -2,8 +2,9 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.maps)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.googleService)
 }
 
 android {
@@ -47,6 +48,11 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.androidx.lifecycle.runtime.livedata)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewModel.ktx)
+    implementation(libs.androidx.activity.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,6 +70,8 @@ dependencies {
 
     //compose material3
     implementation(libs.androidx.compose.material3)
+    //compose viewmodel
+    implementation(libs.androidx.lifecycle.viewModelCompose)
 
     //hilt
     implementation(libs.hilt.android)
@@ -75,4 +83,8 @@ dependencies {
     //google maps Api
     implementation(libs.play.services.maps)
     implementation(libs.compose.maps)
+
+    //firebase
+    implementation(platform(libs.google.firebase))
+    implementation(libs.firebase.firestore)
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "387247631459",
+    "project_id": "kidkidk-a9365",
+    "storage_bucket": "kidkidk-a9365.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387247631459:android:4105dc719dbe908f5fdc56",
+        "android_client_info": {
+          "package_name": "com.example.kidkidk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVXxJJk7jX9BP4syM9UfzXdilcEVSNAlw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,8 +2,9 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.maps)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.googleService)
 }
 
 android {
@@ -55,7 +56,11 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.androidx.lifecycle.runtime.livedata)
+    implementation(libs.androidx.lifecycle.viewModel.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -75,6 +80,15 @@ dependencies {
     //hilt
     implementation(libs.hilt.android)
     implementation(libs.hilt.android.testing)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.hilt.navigation.fragment)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
+
+    //compose viewmodel
+    implementation(libs.androidx.lifecycle.viewModelCompose)
+
+    //firebase
+    implementation(platform(libs.google.firebase))
+    implementation(libs.firebase.firestore)
 }

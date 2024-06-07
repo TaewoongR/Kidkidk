@@ -3,6 +3,7 @@ package com.example.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,11 +30,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,12 +48,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.android.gms.maps.model.AdvancedMarkerOptions
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -61,17 +60,27 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: SharedViewModel = hiltViewModel()
+    viewModel: SharedViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    HomeScreenContent(navController, viewModel, uiState)
+}
+
+@Composable
+fun HomeScreenContent(
+    navController: NavController,
+    viewModel: SharedViewModel,
+    uiState: SharedUiState
+) {
     val range = uiState.signalRange
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    Log.d("home screen", "${uiState.signalRange} ${uiState.parkedStart}")
 
     var uiSettings by remember { mutableStateOf(MapUiSettings(zoomControlsEnabled = true)) }
     var properties by remember {
@@ -99,12 +108,10 @@ fun HomeScreen(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "메뉴",
-                tint = Color.Black,
+                tint = Color.Transparent,
                 modifier = Modifier
                     .size(50.dp)
                     .padding(start = 10.dp)
-                    .clickable {
-                    }
             )
             Text(
                 text = "지도",
@@ -113,16 +120,16 @@ fun HomeScreen(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "메뉴",
-                tint = Color.Black,
+                tint = Color.Transparent,
                 modifier = Modifier
                     .size(50.dp)
                     .padding(end = 10.dp)
-                    .clickable {
-                    }
             )
         }
         HorizontalDivider(
-            modifier = Modifier.width(screenWidth * 0.9f).padding(top = screenWidth * 0.01f, bottom = screenWidth * 0.1f),
+            modifier = Modifier
+                .width(screenWidth * 0.9f)
+                .padding(top = screenWidth * 0.01f, bottom = screenWidth * 0.1f),
             color = Color.LightGray.copy(alpha = 0.8f), thickness = 2.dp)
         Box(
             Modifier
@@ -140,28 +147,39 @@ fun HomeScreen(
                     context = LocalContext.current,
                     position = LatLng(37.5998, 126.8655),
                     title = "Sensor1",
-                    iconResourceId = if (range == 0) R.drawable.warning_green else if (range > 0 && range <= 5 * 1000) R.drawable.warning_yellow else R.drawable.warning_red,
+                    range = range,
                     cameraPositionState = cameraPositionState
                 )
             }
         }
 
-        Box(modifier = Modifier.offset(y = screenWidth * 0.05f).align(Alignment.Start).padding(start = screenWidth * 0.05f, bottom = 10.dp)){
+        Box(modifier = Modifier
+            .offset(y = screenWidth * 0.05f)
+            .align(Alignment.Start)
+            .padding(start = screenWidth * 0.05f, bottom = 10.dp)){
             Text("한국항공대학교", style = TextStyle(fontSize = 23.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black))
         }
-        Box(modifier = Modifier.offset(y = screenWidth * 0.05f).align(Alignment.Start).padding(start = screenWidth * 0.05f, bottom = 10.dp)){
+        Box(modifier = Modifier
+            .offset(y = screenWidth * 0.05f)
+            .align(Alignment.Start)
+            .padding(start = screenWidth * 0.05f, bottom = 10.dp)){
             Text("경기 고양시 덕양구 항공대학로 76", style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal, color = Color.Gray))
         }
-        Box(modifier = Modifier.offset(y = screenWidth * 0.05f).align(Alignment.Start).padding(start = screenWidth * 0.05f, bottom = 10.dp)){
-            Text("불법 주정차 : ${isParked()}", style = TextStyle(fontSize = 23.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black))
+        Box(modifier = Modifier
+            .offset(y = screenWidth * 0.05f)
+            .align(Alignment.Start)
+            .padding(start = screenWidth * 0.05f, bottom = 10.dp)){
+            Text("불법 주정차 : ${isParked(uiState.signalRange)}", style = TextStyle(fontSize = 23.sp, fontWeight = FontWeight.ExtraBold, color = Color.Black))
         }
-        if(isParked() == "O") {
+        if(uiState.signalRange != 0) {
             Box(
-                modifier = Modifier.offset(y = screenWidth * 0.05f).align(Alignment.Start)
+                modifier = Modifier
+                    .offset(y = screenWidth * 0.05f)
+                    .align(Alignment.Start)
                     .padding(start = screenWidth * 0.05f, bottom = 30.dp)
             ) {
                 Text(
-                    "${whenParked()}",
+                    "${uiState.parkedStart}",
                     style = TextStyle(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Normal,
@@ -171,7 +189,9 @@ fun HomeScreen(
             }
         }else{
             Box(
-                modifier = Modifier.offset(y = screenWidth * 0.05f).align(Alignment.Start)
+                modifier = Modifier
+                    .offset(y = screenWidth * 0.05f)
+                    .align(Alignment.Start)
                     .padding(start = screenWidth * 0.05f, bottom = 30.dp)
             ) {
                 Text(
@@ -184,22 +204,16 @@ fun HomeScreen(
                 )
             }
         }
-
-        Box(modifier = Modifier.offset(y = screenWidth * 0.05f)){
-            setButton(screenWidth, "신고하기", viewModel, uiState, navController)
+        if(range > 7) {
+            Box(modifier = Modifier.offset(y = screenWidth * 0.05f)) {
+                setButton(screenWidth, "신고하기", viewModel, uiState, navController)
+            }
         }
     }
 }
 
-fun isParked(): String{
-    return "O"
-}
-
-fun whenParked(): String{
-    val date = System.currentTimeMillis()
-    val dateString = Calendar.getInstance()
-    dateString.setTimeInMillis(date)
-    return SimpleDateFormat("yyyy/MM/dd hh:mm").format(dateString.time)
+fun isParked(range: Int): String{
+    return if(range > 0) "O" else "X"
 }
 
 @Composable
@@ -207,19 +221,28 @@ fun MapMarker(
     context: Context,
     position: LatLng,
     title: String,
-    @DrawableRes iconResourceId: Int,
+    range: Int,
     cameraPositionState: CameraPositionState
 ) {
+    var iconResourceId by remember {
+        mutableIntStateOf(
+            if (range == 0) R.drawable.warning_green
+            else if (range in 1..7) R.drawable.warning_yellow
+            else R.drawable.warning_red
+        )
+    }
     var icon by remember { mutableStateOf<BitmapDescriptor?>(null) }
 
-    LaunchedEffect(cameraPositionState.isMoving) {
-        snapshotFlow { cameraPositionState.position.zoom }
-            .collect { zoom ->
-                val scaledIcon = bitmapDescriptionFromVector(
-                    context, iconResourceId, zoom
-                )
-                icon = scaledIcon
-            }
+    LaunchedEffect(range) {
+        iconResourceId = if (range == 0) R.drawable.warning_green
+        else if (range in 1..7) {
+            R.drawable.warning_yellow
+        } else R.drawable.warning_red
+
+        val scaledIcon = bitmapDescriptionFromVector(
+            context, iconResourceId, cameraPositionState.position.zoom
+        )
+        icon = scaledIcon
     }
 
     if (icon != null) {
@@ -259,6 +282,9 @@ fun setButton(totalWidth: Dp, text: String, viewModel: SharedViewModel, uiState:
             .aspectRatio(1f / 0.16f)
             .background(Color.Black, shape = RoundedCornerShape(12.dp))
             .clickable {
+                navController.navigate("report_route") {
+                    popUpTo(0)
+                }
             },
         contentAlignment = Alignment.Center
     ) {

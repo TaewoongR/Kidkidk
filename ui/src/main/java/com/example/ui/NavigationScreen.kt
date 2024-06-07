@@ -9,6 +9,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,7 +26,7 @@ import androidx.navigation.compose.rememberNavController
 
 
 @Composable
-fun NavigationScreen(bluetoothData: String) {
+fun NavigationScreen(sharedViewModel: SharedViewModel) {
     var navigationSelectedItem by remember { mutableIntStateOf(2) }
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -90,13 +92,13 @@ fun NavigationScreen(bluetoothData: String) {
             startDestination = Screens.Home.route,
             modifier = Modifier.padding(paddingValues = paddingValues)) {
             composable(Screens.Home.route) {
-                HomeScreen(navController)
+                HomeScreen(navController, sharedViewModel)
             }
             composable(Screens.Detect.route) {
-                DetectScreen(bluetoothData, navController)
+                DetectScreen(navController, sharedViewModel)
             }
             composable(Screens.Report.route){
-                ReportScreen(navController)
+                ReportScreen(navController, sharedViewModel)
             }
         }
     }
