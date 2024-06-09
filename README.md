@@ -1,4 +1,5 @@
 This app is designed to communicate with Arduino via Bluetooth, display Google Maps on the UI using the Google Map SDK, and send data calculated within the app to a Cloud server. 
+
 The app counts the time in seconds from when it receives the Bluetooth data string "hello" until Arduino stops sending data within 3 seconds and then sends this data to a Cloud server, Firebase.
 
 The architecture follows the MVVM pattern, utilizing only the UI layer and consisting of two modules: `app` and `ui`. 
